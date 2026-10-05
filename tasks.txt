@@ -13,7 +13,7 @@ M3  Queue + resource dynamics  advancing simulated time and releasing memory whe
  ↓
 M4  6G transmission/rate model
  ↓
-M5  Full feasibility masks
+M5  Full feasibility masks routing order, slicing quotas
  ↓
 M6  Random-policy baseline
  ↓
