@@ -35,3 +35,29 @@ M14 Consensus-delay extension          ← YOUR NOVELTY
  ↓
 M15 CMDP/safety extension
 
+M2                     EDGEPLUS SIMULATOR
+
+                         Topology
+                            │
+             ┌──────────────┼──────────────┐
+             │              │              │
+         Cluster 0      Cluster 1 ...  Cluster 9
+             │              │              │
+          Servers        Servers        Servers
+             │
+             ▼
+        Task Generator
+             │
+             ├── cluster
+             ├── service class
+             ├── CPU cycles
+             ├── memory
+             ├── payload
+             ├── deadline
+             └── priority
+             │
+             ▼
+      Candidate Servers
+             │
+             ▼
+       Feasibility Mask
