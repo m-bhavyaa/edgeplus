@@ -9,7 +9,7 @@ M1  10-cluster topology                 ← THIS
  ↓
 M2  Task/workload generator
  ↓
-M3  Queue + resource dynamics
+M3  Queue + resource dynamics  advancing simulated time and releasing memory when tasks finish.
  ↓
 M4  6G transmission/rate model
  ↓
@@ -61,3 +61,66 @@ M2                     EDGEPLUS SIMULATOR
              │
              ▼
        Feasibility Mask
+
+
+M3  Now we make the simulator event-driven so queues and resources actually evolve over time.
+
+The key change is:
+
+A task assigned at time t occupies memory until its processing finishes. If another task arrives before that, it waits behind the existing work.
+
+What changed?
+
+Previously we had:
+
+server.queue_time += processing
+server.memory_used += task.memory
+
+which meant resources effectively stayed occupied forever.
+
+Now the server maintains:
+
+active_jobs
+    │
+    ├── task 4 → finishes at 3.2
+    ├── task 8 → finishes at 5.7
+    └── task 12 → finishes at 7.1
+When simulation time reaches 5.7, task 8 is automatically released.
+
+                  TASK GENERATOR
+                       │
+                       ▼
+                 ┌───────────┐
+                 │   TASK    │
+                 └─────┬─────┘
+                       │
+                       ▼
+                TASK'S CLUSTER
+                       │
+             ┌─────────┴─────────┐
+             ▼                   ▼
+       LOCAL SERVERS       NEIGHBOR SERVERS
+             │                   │
+             └─────────┬─────────┘
+                       ▼
+                FEASIBILITY MASK
+                       │
+                       ▼
+                    ACTION
+                       │
+                       ▼
+              ┌─────────────────┐
+              │     SERVER      │
+              │                 │
+              │ active jobs     │
+              │ queue           │
+              │ memory          │
+              │ CPU             │
+              └────────┬────────┘
+                       │
+                       ▼
+                 TASK FINISHES
+                       │
+                       ▼
+                 RESOURCE RELEASE
+
