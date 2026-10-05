@@ -4,3 +4,34 @@ We want to prove that the simulator itself is correct first.
 TASK-2
 make the environment genuinely multi-task with queues and resource consumption, which is the point where this starts behaving like an actual edge-computing simulator rather than a toy calculation.
 
+
+M1  10-cluster topology                 ← THIS
+ ↓
+M2  Task/workload generator
+ ↓
+M3  Queue + resource dynamics
+ ↓
+M4  6G transmission/rate model
+ ↓
+M5  Full feasibility masks
+ ↓
+M6  Random-policy baseline
+ ↓
+M7  PPO
+ ↓
+M8  Masked PPO
+ ↓
+M9  Multi-agent CCPPO
+ ↓
+M10 Advisory layer
+ ↓
+M11 PSO
+ ↓
+M12 Blockchain-lite
+ ↓
+M13 EdgePlus experiments
+ ↓
+M14 Consensus-delay extension          ← YOUR NOVELTY
+ ↓
+M15 CMDP/safety extension
+
