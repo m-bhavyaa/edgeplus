@@ -10,6 +10,8 @@ class Server:
     memory_capacity: float
     bandwidth: float
 
+    channel_gain: float = 1.0
+
     energy_budget: float = 1000.0
     energy_used: float = 0.0
 
@@ -24,22 +26,14 @@ class Server:
         )
 
         return self.memory_capacity - used
-
+    
     @property
     def queue_time(self):
 
-        if not self.active_jobs:
-            return 0.0
-
-        latest_finish = max(
-            job["finish_time"]
-            for job in self.active_jobs
-        )
-
         return max(
-            0.0,
-            latest_finish
-        )
+        0.0,
+        self.last_finish_time()
+    )
 
     @property
     def available_energy(self):

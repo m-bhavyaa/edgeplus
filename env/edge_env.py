@@ -245,7 +245,7 @@ from .topology import Topology
         return np.array(
             state,
             dtype=np.float32
-        )'''
+        )
 
 class EdgePlusEnv:
 
@@ -630,6 +630,412 @@ class EdgePlusEnv:
                 server.bandwidth,
 
                 server.queue_time
+            ])
+
+        return np.array(
+            state,
+            dtype=np.float32
+        )'''
+
+
+
+class EdgePlusEnv:
+
+    def __init__(self, servers):
+
+        self.servers = servers
+        self.topology = Topology()
+
+        self.current_task = None
+        self.time = 0.0
+
+    # ==================================================
+    # RESET
+    # ==================================================
+
+    def reset(self):
+
+        self.time = 0.0
+        self.current_task = None
+
+        for server in self.servers:
+
+            server.active_jobs.clear()
+            server.energy_used = 0.0
+
+        return self.get_state()
+
+    # ==================================================
+    # TIME
+    # ==================================================
+
+    def advance_time(self, new_time):
+
+        if new_time < self.time:
+
+            raise ValueError(
+                "Simulation time cannot move backwards."
+            )
+
+        self.time = new_time
+
+        for server in self.servers:
+
+            server.release_completed_jobs(
+                self.time
+            )
+
+    # ==================================================
+    # TASK
+    # ==================================================
+
+    def set_task(self, task):
+
+        self.advance_time(
+            task.arrival_time
+        )
+
+        self.current_task = task
+
+    # ==================================================
+    # TOPOLOGY
+    # ==================================================
+
+    def candidate_servers(self, task):
+
+        local_servers = [
+            server
+            for server in self.servers
+            if server.cluster == task.cluster
+        ]
+
+        neighbor_clusters = (
+            self.topology.get_neighbors(
+                task.cluster
+            )
+        )
+
+        neighbor_servers = [
+            server
+            for server in self.servers
+            if server.cluster in neighbor_clusters
+        ]
+
+        return local_servers + neighbor_servers
+
+    # ==================================================
+    # COMMUNICATION MODEL
+    # ==================================================
+
+    def effective_rate(
+        self,
+        task,
+        server
+    ):
+
+        base_rate = server.bandwidth
+
+        channel_factor = max(
+            server.channel_gain,
+            1e-9
+        )
+
+        return base_rate * channel_factor
+
+    def transmission_latency(
+        self,
+        task,
+        server
+    ):
+
+        rate = self.effective_rate(
+            task,
+            server
+        )
+
+        return (
+            task.payload
+            / rate
+        )
+
+    # ==================================================
+    # MOVEMENT MODEL
+    # ==================================================
+
+    def movement_latency(
+        self,
+        task,
+        server
+    ):
+
+        if server.cluster == task.cluster:
+
+            return 0.0
+
+        if self.topology.are_neighbors(
+            task.cluster,
+            server.cluster
+        ):
+
+            distance = self.topology.distance(
+                task.cluster,
+                server.cluster
+            )
+
+            return 0.01 * distance
+
+        return 0.0
+
+    # ==================================================
+    # QUEUE MODEL
+    # ==================================================
+
+    def queue_latency(
+        self,
+        server
+    ):
+
+        last_finish = (
+            server.last_finish_time()
+        )
+
+        return max(
+            0.0,
+            last_finish - self.time
+        )
+
+    # ==================================================
+    # PROCESSING MODEL
+    # ==================================================
+
+    def processing_latency(
+        self,
+        task,
+        server
+    ):
+
+        return (
+            task.cpu_cycles
+            / server.cpu_rate
+        )
+
+    # ==================================================
+    # TOTAL LATENCY
+    # ==================================================
+
+    def latency_components(
+        self,
+        task,
+        server
+    ):
+
+        return {
+            "transmission": (
+                self.transmission_latency(
+                    task,
+                    server
+                )
+            ),
+            "movement": (
+                self.movement_latency(
+                    task,
+                    server
+                )
+            ),
+            "queue": (
+                self.queue_latency(
+                    server
+                )
+            ),
+            "processing": (
+                self.processing_latency(
+                    task,
+                    server
+                )
+            )
+        }
+
+    def total_latency(
+        self,
+        task,
+        server
+    ):
+
+        components = self.latency_components(
+            task,
+            server
+        )
+
+        return sum(
+            components.values()
+        )
+
+    # ==================================================
+    # FEASIBILITY
+    # ==================================================
+
+    def is_feasible(
+        self,
+        task,
+        server
+    ):
+
+        if server not in self.candidate_servers(
+            task
+        ):
+
+            return False
+
+        latency = self.total_latency(
+            task,
+            server
+        )
+
+        deadline_ok = (
+            task.arrival_time
+            + latency
+            <= task.deadline
+        )
+
+        memory_ok = (
+            server.available_memory
+            >= task.memory
+        )
+
+        return (
+            deadline_ok
+            and memory_ok
+        )
+
+    def get_action_mask(self):
+
+        if self.current_task is None:
+
+            raise ValueError(
+                "No task has been assigned."
+            )
+
+        return np.array(
+            [
+                int(
+                    self.is_feasible(
+                        self.current_task,
+                        server
+                    )
+                )
+                for server in self.servers
+            ],
+            dtype=np.int8
+        )
+
+    # ==================================================
+    # EXECUTION
+    # ==================================================
+
+    def execute(self, server_id):
+
+        if self.current_task is None:
+
+            raise ValueError(
+                "No task has been assigned."
+            )
+
+        task = self.current_task
+        server = self.servers[server_id]
+
+        if not self.is_feasible(
+            task,
+            server
+        ):
+
+            return {
+                "success": False,
+                "latency": None,
+                "reward": -10.0,
+                "server_id": server_id
+            }
+
+        components = self.latency_components(
+            task,
+            server
+        )
+
+        latency = sum(
+            components.values()
+        )
+
+        start_time = (
+            self.time
+            + components["queue"]
+        )
+
+        finish_time = (
+            start_time
+            + components["processing"]
+        )
+
+        server.add_job(
+            task_id=task.id,
+            memory=task.memory,
+            start_time=start_time,
+            finish_time=finish_time
+        )
+
+        reward = 10.0 - latency
+
+        return {
+            "success": True,
+            "latency": latency,
+            "transmission": components["transmission"],
+            "movement": components["movement"],
+            "queue": components["queue"],
+            "processing": components["processing"],
+            "start_time": start_time,
+            "finish_time": finish_time,
+            "reward": reward,
+            "server_id": server_id
+        }
+
+    # ==================================================
+    # STATE
+    # ==================================================
+
+    def get_state(self):
+
+        if self.current_task is None:
+
+            return None
+
+        task = self.current_task
+
+        state = [
+
+            task.cpu_cycles,
+
+            task.memory,
+
+            task.payload,
+
+            task.deadline - self.time,
+
+            task.cluster
+        ]
+
+        for server in self.servers:
+
+            state.extend([
+
+                server.cpu_rate,
+
+                server.available_memory,
+
+                server.bandwidth,
+
+                server.channel_gain,
+
+                server.queue_time
+                if hasattr(server, "queue_time")
+                else self.queue_latency(server)
             ])
 
         return np.array(

@@ -124,3 +124,30 @@ When simulation time reaches 5.7, task 8 is automatically released.
                        ▼
                  RESOURCE RELEASE
 
+M4 — 6G communication model
+
+After this works, we should stop using the simplistic:
+
+payload / bandwidth
+
+and implement the paper's latency structure more faithfully:
+
+L = Ltx + Lmove + Lqueue + Lproc
+
+with an explicit effective communication-rate model and then introduce the URLLC/eMBB/mMTC slice constraints.
+
+And now our mask is actually evaluating:
+
+arrival time
+     +
+transmission
+     +
+movement
+     +
+queue
+     +
+processing
+     ≤
+deadline
+
+
