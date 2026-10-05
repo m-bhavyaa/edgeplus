@@ -1,0 +1,6 @@
+TASK-1:
+We want to prove that the simulator itself is correct first.
+
+TASK-2
+make the environment genuinely multi-task with queues and resource consumption, which is the point where this starts behaving like an actual edge-computing simulator rather than a toy calculation.
+
