@@ -1,7 +1,6 @@
 import numpy as np
 
-from stable_baselines3 import PPO
-
+from sb3_contrib import MaskablePPO
 from env.ppo_env import PPOEdgeEnv
 
 
@@ -12,7 +11,7 @@ def evaluate():
         seed=100
     )
 
-    model = PPO.load(
+    model = MaskablePPO.load(
         "models/m8_masked_ppo",
         env=env
     )
@@ -23,13 +22,28 @@ def evaluate():
     successful_tasks = 0
     total_reward = 0.0
     total_energy = 0.0
-
+    total_feasible_actions = 0
+    tasks_with_no_feasible_action = 0
     latencies = []
+    feasible_tasks = 0
+    successful_feasible_tasks = 0
 
     while True:
 
+        action_masks = env.action_masks()
+
+        num_feasible = action_masks.sum()
+
+        total_feasible_actions += num_feasible
+        if num_feasible>0:
+            feasible_tasks+=1
+
+        if num_feasible == 0:
+            tasks_with_no_feasible_action += 1
+
         action, _ = model.predict(
             obs,
+            action_masks=action_masks,
             deterministic=True
         )
 
@@ -40,13 +54,12 @@ def evaluate():
             truncated,
             info
         ) = env.step(action)
-
+        if info["success"] and num_feasible > 0:
+            successful_feasible_tasks += 1
         total_tasks += 1
-
         total_reward += reward
 
         if info["success"]:
-
             successful_tasks += 1
 
             latencies.append(
@@ -58,7 +71,6 @@ def evaluate():
             )
 
         if terminated or truncated:
-
             break
 
     success_rate = (
@@ -102,7 +114,7 @@ def evaluate():
     )
 
     print(
-        "\n========== M7 PPO =========="
+        "\n========== M8 Masked PPO =========="
     )
 
     print(
@@ -143,8 +155,27 @@ def evaluate():
         f"Mean energy: "
         f"{mean_energy:.4f}"
     )
+    print(
+        f"Average feasible actions: "
+        f"{total_feasible_actions / total_tasks:.2f}"
+    )
 
+    print(
+        f"Tasks with no feasible action: "
+        f"{tasks_with_no_feasible_action}"
+    )
+    
+    print(
+        f"Tasks with >=1 feasible action: "
+        f"{feasible_tasks}"
+    )
+
+    print(
+        f"Success among feasible tasks: "
+        f"{successful_feasible_tasks / feasible_tasks * 100:.2f}%"
+        if feasible_tasks
+        else "Success among feasible tasks: 0.00%"
+    )
 
 if __name__ == "__main__":
-
     evaluate()

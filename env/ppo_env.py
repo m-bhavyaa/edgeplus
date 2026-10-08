@@ -136,7 +136,9 @@ class PPOEdgeEnv(gym.Env):
         observation = self.env.get_state()
 
         return observation, {}
-
+    def action_masks(self):
+        return self.env.get_action_mask().astype(bool)
+    
     def step(
         self,
         action

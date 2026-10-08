@@ -58,8 +58,7 @@ for server in servers:
         f"Server {server.id}: "
         f"latency={latency:.4f}s, "
         f"feasible={env.is_feasible(task, server)}"
-    )'''
-
+    )
 
 from env.edge_env import EdgePlusEnv
 from env.server import Server
@@ -197,4 +196,22 @@ print("\n========== EXECUTION ==========")
 
 result = env.execute(9)
 
-print(result)
+print(result)'''
+
+
+from env.ppo_env import PPOEdgeEnv
+
+
+env = PPOEdgeEnv(
+    num_tasks=10,
+    seed=42
+)
+
+obs, info = env.reset()
+
+mask = env.action_masks()
+
+print("Observation shape:", obs.shape)
+print("Mask:", mask)
+print("Feasible actions:", mask.sum())
+print("Mask dtype:", mask.dtype)
