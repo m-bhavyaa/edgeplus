@@ -1,0 +1,18 @@
+{
+  "algo": "PPO",
+  "timesteps": 100000,
+  "regime": "medium",
+  "train_seed_base": 10000,
+  "train_seconds": 54.53883242607117,
+  "episodes_seen": 84,
+  "ppo": {
+    "lr": 0.0003,
+    "n_steps": 1024,
+    "batch_size": 256,
+    "n_epochs": 6,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "ent_coef": 0.01
+  }
+}
