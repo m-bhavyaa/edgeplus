@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+# Per-(task,server) diagnostic dumps are large and regenerable
+results/audit/*_pairs.csv
