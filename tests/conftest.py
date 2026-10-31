@@ -9,20 +9,16 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from env.config import load_config  # noqa: E402
 from env.edge_env import EdgePlusEnv  # noqa: E402
-from env.server import Server  # noqa: E402
 from env.task import Task  # noqa: E402
 
-
-def make_servers():
-    """The 20-server inventory used by ppo_env.py / experiment-m6.py."""
-    servers = []
-    for c in range(10):
-        servers.append(Server(id=2 * c, cluster=c, cpu_rate=1e9, memory_capacity=4096,
-                              bandwidth=10e6, channel_gain=0.8))
-        servers.append(Server(id=2 * c + 1, cluster=c, cpu_rate=2e9, memory_capacity=8192,
-                              bandwidth=20e6, channel_gain=1.2))
-    return servers
+# Server ids under configs/base.json: cluster c has stationary 3c (1 GHz),
+# 3c+1 (2 GHz), mobile 3c+2; cloud is id 30. Degraded servers: 3 and 12.
+FAST_LOCAL_4 = 13
+SLOW_LOCAL_4 = 12
+MOBILE_4 = 14
+CLOUD = 30
 
 
 def make_task(**kw):
@@ -33,8 +29,12 @@ def make_task(**kw):
 
 
 @pytest.fixture
-def env():
-    e = EdgePlusEnv(servers=make_servers(),
-                    slice_quotas={"URLLC": 10, "eMBB": 10, "mMTC": 10})
-    e.reset()
-    return e
+def cfg():
+    # Deterministic executor for exact-value tests.
+    return load_config(overrides={"simulator.service_noise_cv": 0.0,
+                                  "servers.degraded_servers": []})
+
+
+@pytest.fixture
+def env(cfg):
+    return EdgePlusEnv(cfg, seed=0)

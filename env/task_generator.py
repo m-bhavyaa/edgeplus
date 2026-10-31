@@ -1,146 +1,52 @@
+"""Workload generator (M2).
+
+Paper-aligned parts (Sec. IV-B2, Table IV): class shares 20/50/30 and
+relative deadline bands URLLC U[5,15] s, eMBB U[30,120] s, mMTC U[120,600] s.
+
+ASSUMPTIONS (paper derives these from Brasov air-quality traces, which we do
+not have): Poisson arrivals at a configured rate over a fixed horizon, a
+uniform home cluster, and uniform CPU/memory/payload ranges per class.
+"""
+
+from __future__ import annotations
+
 import numpy as np
 
 from .task import Task
 
+CLASSES = ("URLLC", "eMBB", "mMTC")
+
 
 class TaskGenerator:
 
-    def __init__(
-        self,
-        num_clusters=10,
-        seed=42
-    ):
-        self.num_clusters = num_clusters
+    def __init__(self, workload_cfg: dict, seed: int):
+        self.cfg = workload_cfg
         self.rng = np.random.default_rng(seed)
 
-    def generate_task(
-        self,
-        task_id,
-        arrival_time=None
-    ):
+    def _uniform(self, table: str, cls: str) -> float:
+        lo, hi = self.cfg[table][cls]
+        return float(self.rng.uniform(lo, hi))
 
-        if arrival_time is None:
-            arrival_time = float(
-                self.rng.uniform(0, 100)
-            )
-
-        cluster = int(
-            self.rng.integers(
-                0,
-                self.num_clusters
-            )
-        )
-
-        service_class = self.rng.choice(
-            ["URLLC", "eMBB", "mMTC"]
-        )
-
-        if service_class == "URLLC":
-
-            cpu_cycles = self.rng.uniform(
-                1e9,
-                4e9
-            )
-
-            memory = self.rng.uniform(
-                256,
-                1024
-            )
-
-            payload = self.rng.uniform(
-                0.5e6,
-                2e6
-            )
-
-            deadline_window = self.rng.uniform(
-                1,
-                5
-            )
-
-            priority = 3.0
-
-        elif service_class == "eMBB":
-
-            cpu_cycles = self.rng.uniform(
-                2e9,
-                8e9
-            )
-
-            memory = self.rng.uniform(
-                512,
-                2048
-            )
-
-            payload = self.rng.uniform(
-                5e6,
-                20e6
-            )
-
-            deadline_window = self.rng.uniform(
-                5,
-                15
-            )
-
-            priority = 2.0
-
-        else:
-
-            cpu_cycles = self.rng.uniform(
-                0.5e9,
-                2e9
-            )
-
-            memory = self.rng.uniform(
-                128,
-                512
-            )
-
-            payload = self.rng.uniform(
-                0.1e6,
-                1e6
-            )
-
-            deadline_window = self.rng.uniform(
-                10,
-                30
-            )
-
-            priority = 1.0
-
-        deadline = (
-            arrival_time
-            + deadline_window
-        )
-
+    def generate_task(self, task_id: int, arrival_time: float) -> Task:
+        shares = self.cfg["class_shares"]
+        cls = str(self.rng.choice(CLASSES, p=[shares[c] for c in CLASSES]))
         return Task(
             id=task_id,
             arrival_time=arrival_time,
-            deadline=deadline,
-            cluster=cluster,
-            service_class=service_class,
-            cpu_cycles=cpu_cycles,
-            memory=memory,
-            payload=payload,
-            priority=priority
+            deadline=arrival_time + self._uniform("deadline_bands_s", cls),
+            cluster=int(self.rng.integers(0, self.cfg["num_clusters"])),
+            service_class=cls,
+            cpu_cycles=self._uniform("cpu_cycles", cls),
+            memory=self._uniform("memory_mb", cls),
+            payload=self._uniform("payload_bits", cls),
+            priority=float(self.cfg["class_weight"][cls]),
         )
 
-    def generate_batch(
-        self,
-        num_tasks
-    ):
-
-        tasks = []
-
-        for task_id in range(num_tasks):
-
-            task = self.generate_task(
-                task_id=task_id
-            )
-
-            tasks.append(task)
-
-        tasks.sort(
-            key=lambda task: task.arrival_time
-        )
-
-        return tasks
+    def generate_episode(self, num_tasks: int | None = None) -> list[Task]:
+        """Poisson arrivals at the regime rate. If num_tasks is given the
+        episode is cut to that many tasks (used for short training episodes)."""
+        rate = self.cfg["load_regimes_tasks_per_s"][self.cfg["regime"]]
+        n = num_tasks if num_tasks is not None else int(rate * self.cfg["horizon_s"])
+        gaps = self.rng.exponential(1.0 / rate, size=n)
+        arrivals = np.cumsum(gaps)
+        return [self.generate_task(i, float(t)) for i, t in enumerate(arrivals)]
