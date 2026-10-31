@@ -1,0 +1,315 @@
+{
+  "name": "edge_cloud_x1_report_only",
+  "seeds": [
+    38,
+    39
+  ],
+  "num_tasks": 400,
+  "regime": "stress",
+  "git_commit": "19d93ba",
+  "aggregate": {
+    "tasks_offered": {
+      "mean": 400.0,
+      "std": 0.0,
+      "ci95_low": 400.0,
+      "ci95_high": 400.0,
+      "n": 2
+    },
+    "n_on_time": {
+      "mean": 396.5,
+      "std": 2.1213203435596424,
+      "ci95_low": 377.44100000000003,
+      "ci95_high": 415.55899999999997,
+      "n": 2
+    },
+    "n_late": {
+      "mean": 3.0,
+      "std": 1.4142135623730951,
+      "ci95_low": -9.706,
+      "ci95_high": 15.706,
+      "n": 2
+    },
+    "n_rejected_no_feasible": {
+      "mean": 0.5,
+      "std": 0.7071067811865476,
+      "ci95_low": -5.853,
+      "ci95_high": 6.853,
+      "n": 2
+    },
+    "n_rejected_infeasible_action": {
+      "mean": 0.0,
+      "std": 0.0,
+      "ci95_low": 0.0,
+      "ci95_high": 0.0,
+      "n": 2
+    },
+    "success_all": {
+      "mean": 0.99125,
+      "std": 0.005303300858899072,
+      "ci95_low": 0.9436025000000002,
+      "ci95_high": 1.0388974999999996,
+      "n": 2
+    },
+    "violation_all": {
+      "mean": 0.00874999999999998,
+      "std": 0.005303300858899072,
+      "ci95_low": -0.0388974999999997,
+      "ci95_high": 0.05639749999999966,
+      "n": 2
+    },
+    "late_all": {
+      "mean": 0.0075,
+      "std": 0.0035355339059327377,
+      "ci95_low": -0.024264999999999995,
+      "ci95_high": 0.039264999999999994,
+      "n": 2
+    },
+    "rejected_all": {
+      "mean": 0.00125,
+      "std": 0.0017677669529663688,
+      "ci95_low": -0.014632499999999998,
+      "ci95_high": 0.0171325,
+      "n": 2
+    },
+    "no_feasible_all": {
+      "mean": 0.00125,
+      "std": 0.0017677669529663688,
+      "ci95_low": -0.014632499999999998,
+      "ci95_high": 0.0171325,
+      "n": 2
+    },
+    "feasibility_coverage_all": {
+      "mean": 0.99875,
+      "std": 0.001767766952966331,
+      "ci95_low": 0.9828675000000003,
+      "ci95_high": 1.0146324999999996,
+      "n": 2
+    },
+    "success_feasible": {
+      "mean": 0.9924874686716791,
+      "std": 0.003553255880398562,
+      "ci95_low": 0.960563245614035,
+      "ci95_high": 1.0244116917293231,
+      "n": 2
+    },
+    "mean_feasible_servers_all": {
+      "mean": 5.52,
+      "std": 0.02474873734152864,
+      "ci95_low": 5.297645000000005,
+      "ci95_high": 5.7423549999999945,
+      "n": 2
+    },
+    "lat_mean_exec": {
+      "mean": 9.76299098960678,
+      "std": 0.06019021872684622,
+      "ci95_low": 9.222212043985591,
+      "ci95_high": 10.30376993522797,
+      "n": 2
+    },
+    "lat_p50_exec": {
+      "mean": 9.238209952502396,
+      "std": 0.5422468475426653,
+      "ci95_low": 4.366393822189078,
+      "ci95_high": 14.110026082815715,
+      "n": 2
+    },
+    "lat_p95_exec": {
+      "mean": 18.88923850618577,
+      "std": 1.0123003750904787,
+      "ci95_low": 9.794227039659955,
+      "ci95_high": 27.984249972711584,
+      "n": 2
+    },
+    "queue_mean_exec": {
+      "mean": 7.511379762601502,
+      "std": 0.08694575972002168,
+      "ci95_low": 6.730215692057008,
+      "ci95_high": 8.292543833145995,
+      "n": 2
+    },
+    "processing_mean_exec": {
+      "mean": 1.7330351756338667,
+      "std": 0.004290855170889401,
+      "ci95_low": 1.6944839926641353,
+      "ci95_high": 1.771586358603598,
+      "n": 2
+    },
+    "transmission_mean_exec": {
+      "mean": 0.4072841221454273,
+      "std": 0.021897659348539912,
+      "ci95_low": 0.21054462884310982,
+      "ci95_high": 0.6040236154477447,
+      "n": 2
+    },
+    "movement_mean_exec": {
+      "mean": 0.0,
+      "std": 0.0,
+      "ci95_low": 0.0,
+      "ci95_high": 0.0,
+      "n": 2
+    },
+    "consensus_mean_exec": {
+      "mean": 0.1112919292259856,
+      "std": 0.009148736815524638,
+      "ci95_low": 0.029095114635270466,
+      "ci95_high": 0.19348874381670073,
+      "n": 2
+    },
+    "consensus_timeouts": {
+      "mean": 0.0,
+      "std": 0.0,
+      "ci95_low": 0.0,
+      "ci95_high": 0.0,
+      "n": 2
+    },
+    "energy_total_j": {
+      "mean": 1373.020579283405,
+      "std": 57.92038322356924,
+      "ci95_low": 852.6349679307983,
+      "ci95_high": 1893.4061906360116,
+      "n": 2
+    },
+    "throughput_ontime_per_s": {
+      "mean": 8.405108139562742,
+      "std": 0.423594076658999,
+      "ci95_low": 4.5993276823326745,
+      "ci95_high": 12.21088859679281,
+      "n": 2
+    },
+    "locality_exec": {
+      "mean": 0.8285307017543859,
+      "std": 0.005613435412051107,
+      "ci95_low": 0.778096798245614,
+      "ci95_high": 0.8789646052631579,
+      "n": 2
+    },
+    "cloud_share_exec": {
+      "mean": 0.17146929824561402,
+      "std": 0.005613435412051087,
+      "ci95_low": 0.12103539473684223,
+      "ci95_high": 0.22190320175438583,
+      "n": 2
+    },
+    "stationary_share_exec": {
+      "mean": 0.7609335839598997,
+      "std": 0.019892916337892266,
+      "ci95_low": 0.5822057017543856,
+      "ci95_high": 0.9396614661654139,
+      "n": 2
+    },
+    "urllc_success_all": {
+      "mean": 0.9566666666666667,
+      "std": 0.03299831645537219,
+      "ci95_low": 0.6601933333333336,
+      "ci95_high": 1.2531399999999997,
+      "n": 2
+    },
+    "jain_fairness_clusters": {
+      "mean": 0.9825620580448652,
+      "std": 0.0003854971153985507,
+      "ci95_low": 0.9790985596889062,
+      "ci95_high": 0.9860255564008241,
+      "n": 2
+    },
+    "reward_mean_all": {
+      "mean": 1.72171876554162,
+      "std": 0.06131958234112924,
+      "ci95_low": 1.1707930539263325,
+      "ci95_high": 2.2726444771569074,
+      "n": 2
+    },
+    "decision_ms_mean": {
+      "mean": 0.8230100858482234,
+      "std": 0.007375709461445166,
+      "ci95_low": 0.7567430333247953,
+      "ci95_high": 0.8892771383716516,
+      "n": 2
+    }
+  },
+  "per_seed": {
+    "38": {
+      "tasks_offered": 400,
+      "n_on_time": 395,
+      "n_late": 4,
+      "n_rejected_no_feasible": 1,
+      "n_rejected_infeasible_action": 0,
+      "success_all": 0.9875,
+      "violation_all": 0.012499999999999956,
+      "late_all": 0.01,
+      "rejected_all": 0.0025,
+      "no_feasible_all": 0.0025,
+      "feasibility_coverage_all": 0.9975,
+      "success_feasible": 0.9899749373433584,
+      "mean_feasible_servers_all": 5.5025,
+      "lat_mean_exec": 9.720430077783927,
+      "lat_p50_exec": 9.621636375476843,
+      "lat_p95_exec": 18.173434046361606,
+      "queue_mean_exec": 7.449899826308058,
+      "processing_mean_exec": 1.7300010828454415,
+      "transmission_mean_exec": 0.42276810556289285,
+      "movement_mean_exec": 0.0,
+      "consensus_mean_exec": 0.1177610630675341,
+      "consensus_timeouts": 0,
+      "energy_total_j": 1413.9764750297143,
+      "throughput_ontime_per_s": 8.704634383638775,
+      "locality_exec": 0.8245614035087719,
+      "cloud_share_exec": 0.17543859649122806,
+      "stationary_share_exec": 0.7468671679197995,
+      "urllc_success_all": 0.9333333333333333,
+      "jain_fairness_clusters": 0.9828346456692914,
+      "reward_mean_all": 1.6783592730486807,
+      "decision_ms_mean": 0.8177946716719738,
+      "ledger": {
+        "records": 220,
+        "blocks": 212,
+        "rejected_blocks": 0,
+        "bft_rounds": 21,
+        "bft_timeouts": 0,
+        "poa_delays_median_ms": 0.09708289368424419,
+        "bft_delays_median_ms": 6.961572812931311
+      }
+    },
+    "39": {
+      "tasks_offered": 400,
+      "n_on_time": 398,
+      "n_late": 2,
+      "n_rejected_no_feasible": 0,
+      "n_rejected_infeasible_action": 0,
+      "success_all": 0.995,
+      "violation_all": 0.0050000000000000044,
+      "late_all": 0.005,
+      "rejected_all": 0.0,
+      "no_feasible_all": 0.0,
+      "feasibility_coverage_all": 1.0,
+      "success_feasible": 0.995,
+      "mean_feasible_servers_all": 5.5375,
+      "lat_mean_exec": 9.805551901429636,
+      "lat_p50_exec": 8.85478352952795,
+      "lat_p95_exec": 19.605042966009933,
+      "queue_mean_exec": 7.572859698894945,
+      "processing_mean_exec": 1.736069268422292,
+      "transmission_mean_exec": 0.3918001387279617,
+      "movement_mean_exec": 0.0,
+      "consensus_mean_exec": 0.10482279538443712,
+      "consensus_timeouts": 0,
+      "energy_total_j": 1332.0646835370956,
+      "throughput_ontime_per_s": 8.10558189548671,
+      "locality_exec": 0.8325,
+      "cloud_share_exec": 0.1675,
+      "stationary_share_exec": 0.775,
+      "urllc_success_all": 0.98,
+      "jain_fairness_clusters": 0.982289470420439,
+      "reward_mean_all": 1.7650782580345594,
+      "decision_ms_mean": 0.8282255000244731,
+      "ledger": {
+        "records": 220,
+        "blocks": 199,
+        "rejected_blocks": 0,
+        "bft_rounds": 22,
+        "bft_timeouts": 0,
+        "poa_delays_median_ms": 0.09660370272505452,
+        "bft_delays_median_ms": 7.65870772185887
+      }
+    }
+  }
+}

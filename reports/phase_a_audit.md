@@ -1,5 +1,7 @@
 # Phase A audit: EdgePlus reproduction
 
+> **Status update (Phase B onward):** this audit describes the code at tag `preliminary-v0`. Defects D1–D20 were addressed in later commits, except D18 (Σk/f ≤ H; not implemented, see docs/assumptions.md #12). The §9 open decisions were resolved with documented defaults: paper deadline bands and shares; cloud fallback; recalibrated Poisson load; crypto, OBJ7 and CBS–D* out of scope; smoke and full run modes; all M14 options as ablations. The diagnostics script referenced in §3 was replaced by `diagnostics/feasibility.py` (current simulator); the CSVs in `results/audit/` came from the pre-audit code.
+
 Date: 2026-10-31. Code audited: `main` at `cb22869`. No environment behaviour was changed in Phase A. The only additions are diagnostics, tests, and documents.
 
 Evidence labels used below:
