@@ -67,18 +67,20 @@ class CCPPO:
         probe = make_core(cfg)
         self.cand, self.K = candidate_table(probe)
         self.C = self.cand.shape[0]
-        self.local_dim = 7 + self.C + 9 * self.K
+        self.tdim, self.sdim = probe.task_feat_dim, probe.server_feat_dim
+        self.local_dim = self.tdim + self.C + self.sdim * self.K
         self.global_dim = probe.state_dim + self.C
         h = cfg["ccppo"]["hidden"]
         self.actor = mlp(self.local_dim, h, self.K)
         self.critic = mlp(self.global_dim, 2 * h, 1)
         self.advisory = AdvisoryLayer(cfg["advisory"], self.C) if use_advisory else None
+        self.energy_bias = 0.0   # extension: Lyapunov logit bias weight (0 = off)
 
     # ----------------------------------------------------------- observations
     def local_obs(self, core, task) -> np.ndarray:
         f = core.task_features(task) + [float(task.cluster == c) for c in range(self.C)]
         for sid in self.cand[task.cluster]:
-            f += core.server_features(task, core.servers[sid]) if sid >= 0 else [0.0] * 9
+            f += core.server_features(task, core.servers[sid]) if sid >= 0 else [0.0] * self.sdim
         return np.array(f, np.float32)
 
     def global_state(self, core) -> np.ndarray:
@@ -93,10 +95,10 @@ class CCPPO:
         return valid & np.where(valid, mask[np.maximum(ids, 0)], False)
 
     def slot_bias(self, core, task) -> np.ndarray:
-        if self.advisory is None:
-            return np.zeros(self.K, np.float32)
-        b = self.advisory.bias(core)
         ids = self.cand[task.cluster]
+        b = self.advisory.bias(core) if self.advisory is not None else np.zeros(len(core.servers))
+        if self.energy_bias > 0 and core.sensors is not None:   # -w * Z_j * E_up / e_ref
+            b = b - self.energy_bias * np.array([core.lyapunov_price(task, s) for s in core.servers])
         return np.where(ids >= 0, b[np.maximum(ids, 0)], 0.0).astype(np.float32)
 
     def _dist(self, obs, bias, smask):

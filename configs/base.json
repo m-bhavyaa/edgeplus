@@ -52,6 +52,10 @@
     "distribution": "sampled",
     "max_retries": 3
   },
+  "sensors": {"_comment": "Per-sensor battery extension (not in the paper). Off by default, so all earlier results are unchanged.",
+              "enabled": false, "per_cluster": 20, "battery_j": 1.2, "initial_fraction": [0.2, 1.0],
+              "harvest_peak_w": 0.006, "day_period_s": 200, "sensing_j": 0.01, "p_tx_w": 0.1,
+              "budget_per_reading_j": 0.04, "energy_ref_j": 0.1, "lyapunov_weight": 0.0},
   "advisory": {"enabled": true, "lambda_n": 0.5, "lambda_p": 0.5, "lambda_l": 0.3,
                "nash": {"alpha": 1.0, "beta": 0.2, "gamma": 1.0, "s_min": 0.5, "s_max": 1.5,
                         "coupling": 0.3, "eps": 1e-4, "max_iter": 50},

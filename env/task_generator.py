@@ -22,6 +22,8 @@ class TaskGenerator:
     def __init__(self, workload_cfg: dict, seed: int):
         self.cfg = workload_cfg
         self.rng = np.random.default_rng(seed)
+        # Separate stream so adding sensor ids does not change any other task field.
+        self.sensor_rng = np.random.default_rng(seed + 15485863)
 
     def _uniform(self, table: str, cls: str) -> float:
         lo, hi = self.cfg[table][cls]
@@ -40,6 +42,7 @@ class TaskGenerator:
             memory=self._uniform("memory_mb", cls),
             payload=self._uniform("payload_bits", cls),
             priority=float(self.cfg["class_weight"][cls]),
+            sensor_slot=int(self.sensor_rng.integers(0, 1 << 30)),
         )
 
     def generate_episode(self, num_tasks: int | None = None) -> list[Task]:

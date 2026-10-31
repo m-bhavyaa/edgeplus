@@ -4,7 +4,7 @@ For the offered task, counts how many *routable* servers fail each constraint,
 how many fail two or more at once, and a primary reason for zero-feasible
 tasks. Primary-reason precedence (documented assumption, summary label only):
 the most common first-failed constraint among routable servers, in the order
-slice > memory > energy > reputation > deadline. All counts are kept separately.
+battery > slice > memory > energy > reputation > deadline. All counts are kept separately.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from collections import Counter
 
 from env.edge_env import CONSTRAINTS
 
-PRECEDENCE = ("slice", "memory", "energy", "reputation", "deadline")
+PRECEDENCE = ("battery", "slice", "memory", "energy", "reputation", "deadline")
 
 
 def diagnose_task(core, task) -> dict:

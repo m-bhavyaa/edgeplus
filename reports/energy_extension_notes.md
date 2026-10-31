@@ -1,4 +1,6 @@
-# Per-sensor energy preservation: background and a possible extension (notes, NOT implemented)
+# Per-sensor energy preservation: background and design
+
+> **Update (branch `feature/sensor-energy`):** this design is now implemented in `env/sensors.py`, `agents/baselines.py::LyapunovGreedy` and `experiments/sensor_energy.py`. Results are in `results/sensor_energy/<regime>/table.md` and summarised in README §8.3.
 
 ## Why it fits this project
 The paper motivates EdgePlus with battery-powered air-quality sensors on lampposts (Sec. I), but its energy model only constrains **mobile servers** (Eq. 3). The sensors' own batteries are never modelled. Our simulator does the same: `energy_required()` includes the upload energy P_tx·L_tx, but charges it to no device.

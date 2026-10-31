@@ -26,7 +26,8 @@ ROW_KEYS = ("task_id", "service_class", "cluster", "arrival_time", "deadline", "
             "latency", "consensus", "consensus_timeout", "transmission", "movement", "queue",
             "processing", "energy", "start_time", "finish_time", "reward", "n_feasible",
             "n_routable", "rej_slice", "rej_memory", "rej_energy", "rej_reputation",
-            "rej_deadline", "n_multi_fail", "primary_reason", "decision_ms")
+            "rej_deadline", "rej_battery", "n_multi_fail", "primary_reason", "decision_ms",
+            "sensor", "sensor_energy")
 
 
 def git_commit() -> str:
@@ -69,6 +70,8 @@ def run_episode(policy, cfg: dict, workload_seed: int, num_tasks: int | None = N
         for k in ("poa_delays", "bft_delays"):
             ledger_stats[k + "_median_ms"] = (1e3 * float(sorted(st[k])[len(st[k]) // 2])
                                               if st[k] else None)
+    if core.sensors is not None:
+        ledger_stats = {**(ledger_stats or {}), "sensors": core.sensors.stats()}
     return rows, util, ledger_stats
 
 
@@ -91,7 +94,9 @@ def evaluate(policy, cfg: dict, name: str, out_dir: Path, seeds=None,
         rows, util, lstats = run_episode(policy, cfg, s, num_tasks)
         per_seed[s] = summarize(rows, cfg["workload"]["horizon_s"])
         if lstats:
-            per_seed[s]["ledger"] = lstats
+            per_seed[s].update(lstats.pop("sensors", {}))   # numeric sensor KPIs at top level
+            if lstats:
+                per_seed[s]["ledger"] = lstats
         per_task_success[s] = [r["success"] for r in rows]
         if save_tasks:
             _write_csv(out_dir / f"tasks_seed{s}.csv", rows)

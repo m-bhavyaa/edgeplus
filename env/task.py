@@ -12,6 +12,7 @@ class Task:
     memory: float
     payload: float
     priority: float = 1.0
+    sensor_slot: int = 0      # which sensor of the home cluster produced the reading
 
     @property
     def deadline_slack(self):
