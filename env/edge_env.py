@@ -58,7 +58,7 @@ class EdgePlusEnv:
             s.active_jobs.clear()
             s.energy_used = 0.0
         if self.ledger is not None:
-            self.ledger.reset()
+            self.ledger.reset(self.seed)
         if self.consensus is not None:
             self.consensus.reset(self.seed)
 
@@ -270,7 +270,7 @@ class EdgePlusEnv:
         server.energy_used += energy
         server.add_job(task.id, task.service_class, task.memory, start, finish)
         if self.ledger is not None:
-            log = {"task": task.id, "cluster": server.cluster, "server": server.id,
+            log = {"task": task.id, "cluster": server.cluster, "origin": task.cluster, "server": server.id,
                    "class": task.service_class, "deadline": task.deadline,
                    "t_arrival": task.arrival_time, "t_end": finish,
                    "on_time": outcome == "on_time", "energy": energy}

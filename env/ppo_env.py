@@ -13,20 +13,19 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from .edge_env import EdgePlusEnv
+from .factory import make_core
 from .task_generator import TaskGenerator
 
 
 class PPOEdgeEnv(gym.Env):
 
-    def __init__(self, cfg: dict, num_tasks: int | None = None, seed: int = 0,
-                 ledger=None, consensus=None):
+    def __init__(self, cfg: dict, num_tasks: int | None = None, seed: int = 0):
         super().__init__()
         self.cfg = cfg
         self.num_tasks = num_tasks
         self.base_seed = seed
         self.episode = 0
-        self.core = EdgePlusEnv(cfg, seed=seed, ledger=ledger, consensus=consensus)
+        self.core = make_core(cfg, seed=seed)
         self.observation_space = spaces.Box(-np.inf, np.inf, (self.core.state_dim,), np.float32)
         self.action_space = spaces.Discrete(len(self.core.servers))
         self.tasks, self.idx = [], 0
