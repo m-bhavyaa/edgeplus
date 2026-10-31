@@ -1,0 +1,29 @@
+{
+  "timesteps": 60000,
+  "masks": true,
+  "advisory": true,
+  "ledger": true,
+  "regime": "medium",
+  "episodes": 56,
+  "train_seconds": 106.6161561012268,
+  "last_episode_success": 0.8666666666666667,
+  "ccppo": {
+    "lr": 0.0003,
+    "n_steps": 1024,
+    "epochs": 6,
+    "minibatch": 256,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip": 0.2,
+    "ent_coef": 0.01,
+    "kl_coef": 0.0,
+    "vf_coef": 0.5,
+    "max_grad_norm": 0.5,
+    "hidden": 64
+  },
+  "overrides": {
+    "consensus.mode": "mask_aware",
+    "consensus.path": "edge_cloud",
+    "consensus.delay_scale": 50
+  }
+}

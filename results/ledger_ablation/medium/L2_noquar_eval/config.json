@@ -1,0 +1,261 @@
+{
+  "_comment": "Paper-aligned defaults. Values marked ASSUMPTION in docs/assumptions.md are not given by the paper.",
+  "workload": {
+    "num_clusters": 10,
+    "class_shares": {
+      "URLLC": 0.2,
+      "eMBB": 0.5,
+      "mMTC": 0.3
+    },
+    "deadline_bands_s": {
+      "URLLC": [
+        5,
+        15
+      ],
+      "eMBB": [
+        30,
+        120
+      ],
+      "mMTC": [
+        120,
+        600
+      ]
+    },
+    "cpu_cycles": {
+      "URLLC": [
+        1000000000.0,
+        4000000000.0
+      ],
+      "eMBB": [
+        2000000000.0,
+        8000000000.0
+      ],
+      "mMTC": [
+        500000000.0,
+        2000000000.0
+      ]
+    },
+    "memory_mb": {
+      "URLLC": [
+        256,
+        1024
+      ],
+      "eMBB": [
+        512,
+        2048
+      ],
+      "mMTC": [
+        128,
+        512
+      ]
+    },
+    "payload_bits": {
+      "URLLC": [
+        500000.0,
+        2000000.0
+      ],
+      "eMBB": [
+        5000000.0,
+        20000000.0
+      ],
+      "mMTC": [
+        100000.0,
+        1000000.0
+      ]
+    },
+    "class_weight": {
+      "URLLC": 3.0,
+      "eMBB": 2.0,
+      "mMTC": 1.0
+    },
+    "horizon_s": 200,
+    "load_regimes_tasks_per_s": {
+      "light": 6,
+      "medium": 12,
+      "stress": 18
+    },
+    "regime": "medium"
+  },
+  "servers": {
+    "stationary": [
+      {
+        "cpu_rate": 1000000000.0,
+        "memory": 4096,
+        "bandwidth": 10000000.0,
+        "channel_gain": 0.8
+      },
+      {
+        "cpu_rate": 2000000000.0,
+        "memory": 8192,
+        "bandwidth": 20000000.0,
+        "channel_gain": 1.2
+      }
+    ],
+    "mobile_per_cluster": 1,
+    "mobile": {
+      "cpu_rate": 1500000000.0,
+      "memory": 4096,
+      "bandwidth": 15000000.0,
+      "channel_gain": 1.0,
+      "speed_mps": 33.3,
+      "energy_budget_j": 3000
+    },
+    "cloud": {
+      "enabled": true,
+      "cpu_rate": 10000000000.0,
+      "memory": 65536,
+      "bandwidth": 50000000.0,
+      "channel_gain": 1.0,
+      "backhaul_s": 0.5
+    },
+    "km_per_grid_unit": 1.0,
+    "degraded_servers": [
+      3,
+      12
+    ],
+    "degraded_slowdown": 1.8
+  },
+  "simulator": {
+    "routing": "paper",
+    "deadline_mask": "urllc",
+    "service_noise_cv": 0.25,
+    "slice_compute_budget_s": {
+      "URLLC": 20,
+      "eMBB": 80,
+      "mMTC": 20
+    },
+    "energy": {
+      "p_tx_w": 0.5,
+      "chi_j_per_m": 0.01,
+      "kappa_j_per_cycle": 1e-09
+    }
+  },
+  "reward": {
+    "eta1": 1.0,
+    "eta2": 1.0,
+    "eta3": 0.2,
+    "eta4": 0.05,
+    "eta5": 0.2,
+    "eta6": 0.5,
+    "eta7": 0.2,
+    "energy_ref_j": 10.0,
+    "infeasible_penalty": 2.0
+  },
+  "ledger": {
+    "enabled": true,
+    "authorities_per_cluster": 4,
+    "block_min": 4,
+    "block_max": 32,
+    "block_timeout_s": 0.05,
+    "poa_median_s": 0.00039,
+    "poa_sigma": 0.3,
+    "bft_replicas": 4,
+    "bft_faulty": 0,
+    "bft_period_s": 1.0,
+    "bft_median_s": 0.0069,
+    "bft_sigma": 0.3,
+    "bft_timeout_s": 0.05,
+    "rep_ema_alpha": 0.1,
+    "rep_kappa": 0.5,
+    "rep_threshold": 0.6,
+    "urllc_quarantine_threshold": 0.65,
+    "quarantine": false
+  },
+  "consensus": {
+    "mode": "off",
+    "path": "edge",
+    "delay_scale": 1.0,
+    "distribution": "sampled",
+    "max_retries": 3
+  },
+  "advisory": {
+    "enabled": true,
+    "lambda_n": 0.5,
+    "lambda_p": 0.5,
+    "lambda_l": 0.3,
+    "nash": {
+      "alpha": 1.0,
+      "beta": 0.2,
+      "gamma": 1.0,
+      "s_min": 0.5,
+      "s_max": 1.5,
+      "coupling": 0.3,
+      "eps": 0.0001,
+      "max_iter": 50
+    },
+    "pid": {
+      "kp": 1.9,
+      "ki": 1.2,
+      "kd": 0.06,
+      "rho_set": 0.7,
+      "dt": 1.0
+    },
+    "leader": {
+      "w1": 0.7,
+      "w2": 0.3
+    }
+  },
+  "ccppo": {
+    "lr": 0.0003,
+    "n_steps": 1024,
+    "epochs": 6,
+    "minibatch": 256,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip": 0.2,
+    "ent_coef": 0.01,
+    "kl_coef": 0.0,
+    "vf_coef": 0.5,
+    "max_grad_norm": 0.5,
+    "hidden": 64
+  },
+  "ppo": {
+    "lr": 0.0003,
+    "n_steps": 1024,
+    "batch_size": 256,
+    "n_epochs": 6,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "ent_coef": 0.01
+  },
+  "pso": {
+    "particles": 6,
+    "iterations": 4,
+    "w_max": 0.9,
+    "w_min": 0.4,
+    "c1": 2.05,
+    "c2": 2.05,
+    "bounds": [
+      [
+        0.0,
+        2.0
+      ],
+      [
+        0.0,
+        2.0
+      ],
+      [
+        0.0,
+        2.0
+      ]
+    ],
+    "sla": {
+      "max_cloud": 0.07,
+      "max_fail": 0.05,
+      "min_stationary": 0.8
+    }
+  },
+  "seeds": {
+    "train_base": 10000,
+    "eval": [
+      38,
+      39,
+      40,
+      41,
+      42
+    ],
+    "pso_base": 20000
+  },
+  "train_tasks_per_episode": 1200
+}

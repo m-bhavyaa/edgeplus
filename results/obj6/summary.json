@@ -1,0 +1,131 @@
+{
+  "plant_assumption": {
+    "K": 1.0,
+    "tau": 2.0,
+    "L": 0.5,
+    "Ts": 0.1
+  },
+  "zn_gains": {
+    "gains": [
+      4.8,
+      4.8,
+      1.2
+    ],
+    "corners_pass": 0.0,
+    "nominal": {
+      "kp": 4.8,
+      "ki": 4.8,
+      "kd": 1.2,
+      "stable": true,
+      "Ts": 31.0,
+      "Mp": 116.19263162374635,
+      "pass": false
+    },
+    "worst_Ts": Infinity,
+    "worst_Mp": Infinity
+  },
+  "paper_gains": {
+    "gains": [
+      1.9,
+      1.2,
+      0.06
+    ],
+    "corners_pass": 2.0,
+    "nominal": {
+      "kp": 1.9,
+      "ki": 1.2,
+      "kd": 0.06,
+      "stable": true,
+      "Ts": 4.1000000000000005,
+      "Mp": 21.58920954254826,
+      "pass": 0.0
+    },
+    "worst_Ts": 7.300000000000001,
+    "worst_Mp": 33.82271819590268
+  },
+  "zn_certified": {
+    "iterations": 40,
+    "certified": false,
+    "gains": [
+      0.0788,
+      4.8,
+      1.2
+    ],
+    "corners_pass": 0,
+    "nominal": {
+      "kp": 0.07883137568765122,
+      "ki": 4.8,
+      "kd": 1.2,
+      "stable": false,
+      "Ts": Infinity,
+      "Mp": Infinity,
+      "pass": false
+    },
+    "worst_Ts": Infinity,
+    "worst_Mp": Infinity
+  },
+  "paper_certified": {
+    "iterations": 40,
+    "certified": false,
+    "gains": [
+      0.0312,
+      1.2,
+      0.06
+    ],
+    "corners_pass": 0,
+    "nominal": {
+      "kp": 0.031204086209695264,
+      "ki": 1.2,
+      "kd": 0.06,
+      "stable": true,
+      "Ts": 49.0,
+      "Mp": 71.68928535529713,
+      "pass": false
+    },
+    "worst_Ts": 84.30000000000001,
+    "worst_Mp": 83.80997740098705
+  },
+  "zn_certified_scale_all": {
+    "iterations": 40,
+    "certified": false,
+    "gains": [
+      0.0788,
+      0.0788,
+      0.0197
+    ],
+    "corners_pass": 0,
+    "nominal": {
+      "kp": 0.07883137568765122,
+      "ki": 0.07883137568765122,
+      "kd": 0.019707843921912806,
+      "stable": true,
+      "Ts": 44.2,
+      "Mp": 0.0,
+      "pass": false
+    },
+    "worst_Ts": 58.5,
+    "worst_Mp": 0.0
+  },
+  "paper_certified_scale_all": {
+    "iterations": 7,
+    "certified": true,
+    "gains": [
+      0.9088,
+      0.574,
+      0.0287
+    ],
+    "corners_pass": 8.0,
+    "nominal": {
+      "kp": 0.90876411,
+      "ki": 0.5739562800000001,
+      "kd": 0.028697814000000006,
+      "stable": true,
+      "Ts": 8.0,
+      "Mp": 3.678399846047342,
+      "pass": 1.0
+    },
+    "worst_Ts": 8.6,
+    "worst_Mp": 13.78851369561711
+  },
+  "grid_mean_pass_rate": 0.4295267489711934
+}

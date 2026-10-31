@@ -1,0 +1,35 @@
+{
+  "policy": "m7",
+  "seed": 100,
+  "num_tasks": 1000,
+  "outcomes_recorded": 1000,
+  "success": 263,
+  "zero_feasible": 28,
+  "success_given_feasible": 0.2705761316872428,
+  "masked_feasible_but_failed": 0,
+  "zero_feasible_by_class": {
+    "URLLC": 28
+  },
+  "zero_feasible_static_infeasible": 28,
+  "zero_feasible_dynamic_only": 0,
+  "zero_feasible_primary_reason": {
+    "deadline": 28
+  },
+  "static_infeasible_all_tasks": 28,
+  "static_infeasible_by_class": {
+    "URLLC": 28
+  },
+  "class_counts": {
+    "mMTC": 334,
+    "URLLC": 327,
+    "eMBB": 339
+  },
+  "mean_feasible_actions": 6.222,
+  "zero_feasible_mean_rejections_routable": {
+    "slice": 0.0,
+    "memory": 0.03571428571428571,
+    "energy": 0.0,
+    "deadline": 7.285714285714286
+  },
+  "zero_feasible_mean_multi_fail_routable": 0.03571428571428571
+}
