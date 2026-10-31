@@ -9,6 +9,7 @@ delay_scale in {1, 10, 50}, plus a broken-BFT-quorum scenario (faulty = 2 of 4).
 
     python run_consensus_extension.py --regime stress
     python run_consensus_extension.py --regime stress --smoke
+    python run_consensus_extension.py --regime stress --policies ccppo_cons50
 """
 
 from __future__ import annotations
@@ -22,6 +23,8 @@ from agents.ccppo import CCPPO
 from env.config import REPO_ROOT, load_config
 from evaluation.report import table
 from evaluation.runner import evaluate
+
+MODELS = {"ccppo": "m9_ccppo.pt", "ccppo_cons50": "m9_ccppo_cons50.pt"}
 
 COLS = (("success_all", "Success (all) %", 100), ("urllc_success_all", "URLLC on-time %", 100),
         ("late_all", "Late %", 100), ("rejected_all", "Rejected %", 100),
@@ -49,20 +52,24 @@ def main() -> None:
     ap.add_argument("--regime", default="stress")
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--out", type=Path, default=REPO_ROOT / "results" / "consensus")
+    ap.add_argument("--policies", nargs="*", default=["ccppo", "greedy"],
+                    choices=list(MODELS) + ["greedy"],
+                    help="ccppo = trained without consensus; ccppo_cons50 = trained with "
+                         "mask_aware edge_cloud consensus at delay_scale 50")
     a = ap.parse_args()
     out = a.out / (a.regime + ("_smoke" if a.smoke else ""))
     md = [f"# M14 consensus extension: regime {a.regime}\n",
           "Each block compares report_only (mask ignores L_cons) with mask_aware on the same "
           "tasks; p-values are vs report_only. Mean ± std over seeds.\n"]
     index = {}
-    for pol_name in ("ccppo", "greedy"):
+    for pol_name in a.policies:
         groups: dict = {}
         for name, ov, group in scenarios(a.smoke):
             cfg = load_config(overrides={"workload.regime": a.regime, **ov})
             seeds = cfg["seeds"]["eval"][:2] if a.smoke else cfg["seeds"]["eval"]
             n = 400 if a.smoke else None
-            pol = (CCPPO.load(REPO_ROOT / "models" / "m9_ccppo.pt", cfg, name=name)
-                   if pol_name == "ccppo" else GreedyMinLatency())
+            pol = (CCPPO.load(REPO_ROOT / "models" / MODELS[pol_name], cfg, name=name)
+                   if pol_name in MODELS else GreedyMinLatency())
             pol.name = name
             s = evaluate(pol, cfg, name, out / pol_name, seeds, n)
             groups.setdefault(group, []).append(s)
@@ -74,8 +81,9 @@ def main() -> None:
                 continue
             md.append(f"\n### {g}\n")
             md.append(table(sums, cols=COLS, ref=sums[0]["name"]))
-    (out / "table.md").write_text("\n".join(md) + "\n")
-    (out / "index.json").write_text(json.dumps(index, indent=2))
+    tag = "" if a.policies == ["ccppo", "greedy"] else "_" + "_".join(a.policies)
+    (out / f"table{tag}.md").write_text("\n".join(md) + "\n")
+    (out / f"index{tag}.json").write_text(json.dumps(index, indent=2))
     print("\n".join(md))
 
 

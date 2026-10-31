@@ -60,6 +60,12 @@ python train_m9_ccppo.py --no-ledger   --out models/m9_ccppo_noledger.pt
 python train_m9_ccppo.py --no-masks    --out models/m9_ccppo_nomask.pt
 python train_m9_ccppo.py --no-masks --no-advisory --no-ledger --out models/m9_ccppo_plain.pt
 python train_m9_ccppo.py --no-advisory --no-ledger --out models/m9_ccppo_maskonly.pt
+# follow-ups (report §8, §10)
+python train_m9_ccppo.py --set ledger.quarantine=false --out models/m9_ccppo_noquar.pt
+python train_m9_ccppo.py --set reward.eta6=0 reward.eta7=0 --out models/m9_ccppo_noshape.pt
+python train_m9_ccppo.py --set seeds.train_base=11000 --out models/m9_ccppo_s2.pt
+python train_m9_ccppo.py --no-ledger --set seeds.train_base=11000 --out models/m9_ccppo_noledger_s2.pt
+python train_m9_ccppo.py --set 'consensus.mode="mask_aware"' 'consensus.path="edge_cloud"' consensus.delay_scale=50 --out models/m9_ccppo_cons50.pt
 ```
 Add `--smoke` to any training script to check the pipeline in a few seconds. A smoke model is **not** a result.
 
@@ -70,7 +76,9 @@ Add `--smoke` to any training script to check the pipeline in a few seconds. A s
 | §8 ablations A1–A6 | `python run_edgeplus.py --regime {medium,stress}` | `results/edgeplus/<regime>/table.md`, `pso.json` |
 | §8 ungated PSO | `python run_edgeplus.py --regime stress --pso-ungated --only A1_full A2_no_pso` | `results/edgeplus/stress_pso_ungated/` |
 | §9 PID robustness | `python -m experiments.obj6_pid` | `results/obj6/summary.json`, `grid.csv` |
+| §8 ledger follow-up | `python -m experiments.ledger_ablation --regime stress` | `results/ledger_ablation/stress/table.md` |
 | §10 consensus extension | `python run_consensus_extension.py --regime stress` (~7 min) | `results/consensus/stress/table.md` |
+| §10 consensus-trained CCPPO | `python run_consensus_extension.py --regime stress --policies ccppo_cons50` | `results/consensus/stress/table_ccppo_cons50.md` |
 
 Each output folder contains `summary.json` (per-seed and aggregate KPIs, git commit), `config.json`, and per-task / per-server CSVs (`tasks_seed*.csv`, `servers_seed*.csv`). Add `--smoke` (2 seeds × 400 tasks) to any runner for a quick check.
 
