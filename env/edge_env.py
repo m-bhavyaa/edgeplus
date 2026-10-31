@@ -24,13 +24,15 @@ import heapq
 
 import numpy as np
 
+from .sensors import SensorField
 from .server import CLOUD, MOBILE, STATIONARY, Server, build_servers
 from .task import Task
 from .topology import Topology
 
 CLASSES = ("URLLC", "eMBB", "mMTC")
-CONSTRAINTS = ("routing", "slice", "memory", "energy", "deadline", "reputation")
-OUTCOMES = ("on_time", "late", "rejected_no_feasible", "rejected_infeasible_action")
+CONSTRAINTS = ("routing", "slice", "memory", "energy", "deadline", "reputation", "battery")
+OUTCOMES = ("on_time", "late", "rejected_no_feasible", "rejected_infeasible_action",
+            "dropped_battery")
 
 
 class EdgePlusEnv:
@@ -42,6 +44,8 @@ class EdgePlusEnv:
         self.servers: list[Server] = build_servers(cfg["servers"], cfg["workload"]["num_clusters"])
         self.ledger = ledger          # ledger.Ledger or None (M12)
         self.consensus = consensus    # ledger.ConsensusDelayModel or None (M14)
+        sc = cfg.get("sensors", {"enabled": False})
+        self.sensors = SensorField(sc, cfg["workload"]["num_clusters"]) if sc["enabled"] else None
         self.seed = seed
         self.reset()
 
@@ -61,6 +65,10 @@ class EdgePlusEnv:
             self.ledger.reset(self.seed)
         if self.consensus is not None:
             self.consensus.reset(self.seed)
+        if self.sensors is not None:
+            self.sensors.reset(self.seed)
+        self._sensor_dead = False
+        self._reading_spent = 0.0
 
     def advance_time(self, new_time: float) -> None:
         if new_time < self.time:
@@ -74,10 +82,44 @@ class EdgePlusEnv:
             self.ledger.record(log)
         if self.ledger is not None:
             self.ledger.advance(new_time)
+        if self.sensors is not None:
+            self.sensors.advance(new_time)
 
     def set_task(self, task: Task) -> None:
         self.advance_time(task.arrival_time)
         self.current_task = task
+        if self.sensors is not None:            # the sensor pays for taking the reading
+            j = self.sensor_of(task)
+            self._sensor_dead = not self.sensors.alive(j)
+            self._reading_spent = 0.0
+            if not self._sensor_dead:
+                e = self.sensors.cfg["sensing_j"]
+                self.sensors.spend(j, e, self.time)
+                self._reading_spent = e
+
+    # ---------------------------------------------------------------- sensors
+    def sensor_of(self, task: Task) -> int:
+        per = self.sensors.cfg["per_cluster"]
+        return task.cluster * per + task.sensor_slot % per
+
+    def sensor_upload_energy(self, task, server) -> float:
+        return 0.0 if self.sensors is None else self.sensors.upload_energy(task, server)
+
+    def battery_feasible(self, task, server) -> bool:
+        """The sensor must be alive and able to pay the upload to this server."""
+        if self.sensors is None:
+            return True
+        if self._sensor_dead:
+            return False
+        return self.sensors.can_afford(self.sensor_of(task), self.sensors.upload_energy(task, server))
+
+    def lyapunov_price(self, task, server) -> float:
+        """Z_j * E_up / e_ref: drift term of drift-plus-penalty (0 without sensors)."""
+        if self.sensors is None:
+            return 0.0
+        sc = self.sensors.cfg
+        return self.sensors.Z[self.sensor_of(task)] * self.sensors.upload_energy(task, server) \
+            / sc["energy_ref_j"]
 
     # ---------------------------------------------------------------- routing
     def routing_region(self, task: Task, server: Server) -> int | None:
@@ -195,6 +237,7 @@ class EdgePlusEnv:
         r["energy"] = self.energy_feasible(task, server)
         r["deadline"] = self.deadline_feasible(task, server)
         r["reputation"] = self.reputation_feasible(task, server)
+        r["battery"] = self.battery_feasible(task, server)
         r["feasible"] = all(r[c] for c in CONSTRAINTS)
         return r
 
@@ -225,6 +268,8 @@ class EdgePlusEnv:
             if self.ledger is not None:
                 r -= rw["eta6"] * self.ledger.reputation_penalty(server.id)
                 r -= rw["eta7"] * self.ledger.debt(server.cluster)
+            if self.sensors is not None:     # Lyapunov energy price (extension)
+                r -= self.sensors.cfg["lyapunov_weight"] * self.lyapunov_price(task, server)
         return float(r)
 
     def _base_result(self, task, outcome, server_id=None) -> dict:
@@ -234,10 +279,17 @@ class EdgePlusEnv:
                 "success": outcome == "on_time", "executed": outcome in ("on_time", "late")}
 
     def reject(self) -> dict:
-        """Explicit outcome for a task with no feasible server."""
+        """Explicit outcome for a task with no feasible server, or a dead sensor."""
         task = self.current_task
-        res = self._base_result(task, "rejected_no_feasible")
-        res["reward"] = self._reward(task, "rejected_no_feasible")
+        outcome = "dropped_battery" if (self.sensors is not None and self._sensor_dead) \
+            else "rejected_no_feasible"
+        res = self._base_result(task, outcome)
+        res["reward"] = self._reward(task, outcome)
+        if self.sensors is not None:
+            j = self.sensor_of(task)
+            self.sensors.dropped += outcome == "dropped_battery"
+            self.sensors.update_queue(j, self._reading_spent)
+            res.update({"sensor": j, "sensor_energy": self._reading_spent})
         return res
 
     def execute(self, server_id: int) -> dict:
@@ -268,6 +320,14 @@ class EdgePlusEnv:
         energy = self.energy_required(task, server, tx, move)
 
         server.energy_used += energy
+        sensor_e = 0.0
+        if self.sensors is not None:
+            j = self.sensor_of(task)
+            reward_before = self._reward(task, outcome, latency, energy, server)  # price uses pre-spend Z
+            e_up = self.sensors.upload_energy(task, server)
+            self.sensors.spend(j, e_up, self.time)
+            sensor_e = self._reading_spent + e_up
+            self.sensors.update_queue(j, sensor_e)
         server.add_job(task.id, task.service_class, task.memory, start, finish)
         if self.ledger is not None:
             log = {"task": task.id, "cluster": server.cluster, "origin": task.cluster, "server": server.id,
@@ -284,7 +344,10 @@ class EdgePlusEnv:
                     "transmission": tx, "movement": move, "queue": start - ready,
                     "processing": proc, "energy": energy, "start_time": start,
                     "finish_time": finish})
-        res["reward"] = self._reward(task, outcome, latency, energy, server)
+        if self.sensors is not None:
+            res.update({"sensor": j, "sensor_energy": sensor_e, "reward": reward_before})
+        else:
+            res["reward"] = self._reward(task, outcome, latency, energy, server)
         return res
 
     # ------------------------------------------------------------ observation
@@ -295,8 +358,12 @@ class EdgePlusEnv:
 
     def task_features(self, task: Task) -> list[float]:
         onehot = [float(task.service_class == c) for c in CLASSES]
-        return onehot + [task.cpu_cycles / 1e10, task.memory / 2048.0, task.payload / 2e7,
-                         (task.deadline - self.time) / 600.0]
+        f = onehot + [task.cpu_cycles / 1e10, task.memory / 2048.0, task.payload / 2e7,
+                      (task.deadline - self.time) / 600.0]
+        if self.sensors is not None:           # battery fraction and virtual queue of the sensor
+            j = self.sensor_of(task)
+            f += [self.sensors.b[j] / self.sensors.B, min(self.sensors.Z[j], 5.0)]
+        return f
 
     def server_features(self, task: Task, server: Server) -> list[float]:
         """Scaled per-server features (fixes audit D8). Includes predicted
@@ -309,7 +376,9 @@ class EdgePlusEnv:
         return [float(routable), float(server.kind == MOBILE), float(server.kind == CLOUD),
                 min(server.backlog(self.time) / 60.0, 5.0),
                 server.available_memory / server.memory_capacity, energy,
-                server.cpu_rate / 1e10, min(pred / slack, 5.0), rep]
+                server.cpu_rate / 1e10, min(pred / slack, 5.0), rep] + (
+            [] if self.sensors is None
+            else [min(self.sensor_upload_energy(task, server) / self.sensors.cfg["energy_ref_j"], 5.0)])
 
     def get_state(self) -> np.ndarray:
         task = self.current_task
@@ -319,5 +388,13 @@ class EdgePlusEnv:
         return np.array(feats, dtype=np.float32)
 
     @property
+    def task_feat_dim(self) -> int:
+        return 7 + (2 if self.sensors is not None else 0)
+
+    @property
+    def server_feat_dim(self) -> int:
+        return 9 + (1 if self.sensors is not None else 0)
+
+    @property
     def state_dim(self) -> int:
-        return 7 + 9 * len(self.servers)
+        return self.task_feat_dim + self.server_feat_dim * len(self.servers)

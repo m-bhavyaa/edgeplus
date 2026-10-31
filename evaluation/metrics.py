@@ -14,7 +14,8 @@ import numpy as np
 def summarize(rows: list[dict], horizon_s: float) -> dict:
     n = len(rows)
     out = {k: sum(r["outcome"] == k for r in rows) for k in
-           ("on_time", "late", "rejected_no_feasible", "rejected_infeasible_action")}
+           ("on_time", "late", "rejected_no_feasible", "rejected_infeasible_action",
+            "dropped_battery")}
     ex = [r for r in rows if r["executed"]]
     feas = [r for r in rows if r["n_feasible"] > 0]
     lat = np.array([r["latency"] for r in ex]) if ex else np.array([np.nan])
@@ -37,7 +38,9 @@ def summarize(rows: list[dict], horizon_s: float) -> dict:
         "success_all": out["on_time"] / n,
         "violation_all": 1 - out["on_time"] / n,
         "late_all": out["late"] / n,
-        "rejected_all": (out["rejected_no_feasible"] + out["rejected_infeasible_action"]) / n,
+        "rejected_all": (out["rejected_no_feasible"] + out["rejected_infeasible_action"]
+                         + out["dropped_battery"]) / n,
+        "dropped_battery_all": out["dropped_battery"] / n,
         "no_feasible_all": out["rejected_no_feasible"] / n,
         "feasibility_coverage_all": len(feas) / n,
         "success_feasible": (sum(r["success"] for r in feas) / len(feas)) if feas else float("nan"),

@@ -61,3 +61,23 @@ class SB3Policy:
         else:
             a, _ = self.model.predict(obs, deterministic=True)  # may pick an infeasible server
         return int(a)
+
+
+class LyapunovGreedy:
+    """Energy-aware greedy (drift-plus-penalty, extension):
+        argmin_s  L_pred(s) / slack  +  V * Z_j * E_up(s) / e_ref
+    With V = 0 this is GreedyMinLatency up to tie-breaking (latency is normalised)."""
+
+    def __init__(self, V: float = 1.0, name: str = "greedy_lyapunov"):
+        self.V, self.name = V, name
+
+    def reset(self, core):
+        pass
+
+    def act(self, core, mask):
+        t = core.current_task
+        slack = max(t.deadline - core.time, 1e-6)
+        ids = np.flatnonzero(mask)
+        score = [core.total_latency(t, core.servers[i]) / slack
+                 + self.V * core.lyapunov_price(t, core.servers[i]) for i in ids]
+        return int(ids[np.argmin(score)])

@@ -21,7 +21,10 @@ def table(summaries: list[dict], cols=DEFAULT_COLS, ref: str | None = None) -> s
     for s in summaries:
         cells = []
         for key, _, scale in cols:
-            a = s["aggregate"][key]
+            a = s["aggregate"].get(key)
+            if a is None or not np.isfinite(a["mean"]):
+                cells.append("n/a")      # metric not defined for this configuration
+                continue
             cells.append(f"{a['mean'] * scale:.2f} ± {a['std'] * scale:.2f}")
         line = f"| {s['name']} | " + " | ".join(cells) + " |"
         if base is not None:
